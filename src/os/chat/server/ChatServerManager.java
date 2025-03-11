@@ -51,7 +51,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 			registry = LocateRegistry.getRegistry();
 			registry.rebind("ChatServerManager", stub);
 		} catch (RemoteException e) {
-			System.out.println("can not export the object");
+			System.out.println("Can not export the object");
 			e.printStackTrace();
         }
 		System.out.println("ChatServerManager was created");
@@ -109,13 +109,11 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	public static void main(String[] args) {
 		 try {
 			 LocateRegistry.createRegistry(1099);
-
-
 			 } catch (RemoteException e) {
-			 System.out.println("error:can not create registry");
+			 System.out.println("Error: Can not create registry");
 			 e.printStackTrace();
 			 }
-		 System.out.println("registry was created");
+		 System.out.println("Registry was created");
 		 getInstance();
 		 }
 	

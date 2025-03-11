@@ -8,6 +8,8 @@ import java.rmi.registry.Registry;
 import java.util.Vector;
 
 import os.chat.server.ChatServer;
+import os.chat.server.ChatServerInterface;
+import os.chat.server.ChatServerManager;
 import os.chat.server.ChatServerManagerInterface;
 
 /**
@@ -50,7 +52,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		// DONE
 
 		try {
-			registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
+			registry = LocateRegistry.getRegistry();
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
 		} catch (RemoteException e) {
 			System.out.println("Can not locate registry");
@@ -79,17 +81,16 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		 */
 
 		try {
-			ChatServer chatServer = (ChatServer) registry.lookup(roomName);
+			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName); 
 			if (chatServer != null) {
 				chatServer.publish(message, userName);
 			} else {
-				System.out.println(" Error : Not connected to Chat Server !");
+				System.out.println("Error : Not connected to chat's server !");
 			}
 		} catch (RemoteException | NotBoundException e) {
-			System.out.println("Error while sending text to Chat Server");
+			System.out.println("Error while sending the message to the chat server");
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -105,7 +106,6 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 
 		try {
 			return csm.getRoomsList();
-
 		} catch (RemoteException e) {
 			System.out.println("Can not call ChatServerManager.getRoomsList()");
 			e.printStackTrace();
@@ -121,13 +121,10 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * <code>false</code> otherwise
 	 */
 	public boolean joinChatRoom(String roomName) {
-
-		/*
-		 * TODO implement the method to join a chat room and receive notifications of new messages.
-		 */
 		try {
 			Vector<String> availableRooms = getChatRoomsList();
-			ChatServer chatRoom = (ChatServer) registry.lookup(roomName);
+			ChatServerInterface chatRoom = (ChatServerInterface) registry.lookup("room " + roomName);
+
 			System.out.println(this.userName + " joined the chat room " + roomName);
 
 			if (!availableRooms.contains(roomName)) {
@@ -135,14 +132,13 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 				return false;
 			}
 			if (chatRoom != null) {
-				chatRoom.register(this);
 				return true;
 			} else {
-				System.out.println("Error: Chat room not found on server!");
+				System.out.println("Error : Chat room not reachable on the server !");
 				return false;
 			}
 		} catch (RemoteException | NotBoundException e) {
-			System.out.println("Error while joining chat room: " + roomName);
+			System.out.println("Error while connecting to : " + roomName);
 			e.printStackTrace();
 			return false;
 		}
@@ -203,10 +199,10 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 */
 	public void receiveMsg(String roomName, String message) {
 
-		System.err.println("TODO: getName is not implemented.");
 		/*
 		 * TODO implement the method to allow server to publish message for client.
 		 */
+		window.publish(roomName, message);
 	}
 
 	// This class does not contain a main method. You should launch the whole program by launching ChatClientWindow's main method.

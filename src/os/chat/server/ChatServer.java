@@ -53,18 +53,22 @@ public class ChatServer implements ChatServerInterface {
 	 * chat room) a message send from a client.
 	 * @param message the message to propagate
 	 * @param publisher the client from which the message originates
-	 */	
+	 */
 	public void publish(String message, String publisher) throws RemoteException {
+		System.out.println("[" + roomName + "] " + publisher + " : " + message);
 
-		/*
-		 * TODO send the message to all registered clients
-		 */
-		System.out.println("[" + roomName + "]" + publisher + ": " + message);
+		Vector<CommandsFromServer> toRemove = new Vector<>();
 
-		// Envoyer le message à tous les clients enregistrés
 		for (CommandsFromServer client : registeredClients) {
-            client.receiveMsg(message, publisher);
-        }
+			try {
+				client.receiveMsg(message, publisher);
+			} catch (Exception e) {
+				System.out.println("Client déconnecté détecté: " + client);
+				toRemove.add(client);
+			}
+		}
+
+		registeredClients.removeAll(toRemove);
 	}
 
 	/**
@@ -72,17 +76,21 @@ public class ChatServer implements ChatServerInterface {
 	 * @param client the name of the client as registered with the RMI
 	 * registry
 	 */
-	public void register(CommandsFromServer client) {
+	public void register(CommandsFromServer client) throws RemoteException {
 
 		/*
 		 * TODO register the client
 		 */
 
 		// DONE
-
-		if (!registeredClients.contains(client)) {
-			registeredClients.add(client);
-			System.out.println("Client registered: " + client);
+		try {
+			if (!registeredClients.contains(client)) {
+				registeredClients.add(client);
+				System.out.println("Client registered: " + client);
+			}
+		} catch (Exception e) {
+			System.out.println("Error registering client: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -91,15 +99,20 @@ public class ChatServer implements ChatServerInterface {
 	 * @param client the name of the client as registered with the RMI
 	 * registry
 	 */
-	public void unregister(CommandsFromServer client) {
+	public void unregister(CommandsFromServer client) throws RemoteException {
 
 		/*
 		 * TODO unregister the client
 		 */
 		// DONE
-		if(registeredClients.contains(client)) {
-			registeredClients.remove(client);
-			System.out.println("Client unregistered: " + client);
+		try {
+			if (registeredClients.contains(client)) {
+				registeredClients.remove(client);
+				System.out.println("Client unregistered: " + client);
+			}
+		} catch (Exception e) {
+			System.out.println("Error unregistering client: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
