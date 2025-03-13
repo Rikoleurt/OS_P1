@@ -1,22 +1,27 @@
 package os.chat.client;
 
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import os.chat.server.ChatServer;
 import os.chat.server.ChatServerInterface;
 import os.chat.server.ChatServerManager;
 import os.chat.server.ChatServerManagerInterface;
+import java.io.Serializable;
 
 /**
  * This class implements a chat client that can be run locally or remotely to
  * communicate with a {@link ChatServer} using RMI.
  */
-public class ChatClient implements CommandsFromWindow,CommandsFromServer {
+public class ChatClient implements CommandsFromWindow, CommandsFromServer {
 
 	/**
 	 * The name of the user of this client
@@ -28,7 +33,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
    * the GUI will use the CommandsFromWindow interface to call methods to the
    * ChatClient implementation.
    */
-	private final CommandsToWindow window ;
+	private CommandsToWindow window ; // Transient to meet serialization constraints
 
   /**
    * Constructor for the <code>ChatClient</code>. Must perform the connection to the
@@ -46,13 +51,8 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		this.window = window;
 		this.userName = userName;
 
-		/*
-		 * TODO implement constructor
-		 */
-		// DONE
-
 		try {
-			registry = LocateRegistry.getRegistry();
+			registry = LocateRegistry.getRegistry("127.0.0.1");
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
 		} catch (RemoteException e) {
 			System.out.println("Can not locate registry");
@@ -81,8 +81,9 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		 */
 
 		try {
-			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName); 
+			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName);
 			if (chatServer != null) {
+				System.out.println(window);
 				chatServer.publish(message, userName);
 			} else {
 				System.out.println("Error : Not connected to chat's server !");
@@ -122,26 +123,15 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 */
 	public boolean joinChatRoom(String roomName) {
 		try {
-			Vector<String> availableRooms = getChatRoomsList();
-			ChatServerInterface chatRoom = (ChatServerInterface) registry.lookup("room " + roomName);
-
-			System.out.println(this.userName + " joined the chat room " + roomName);
-
-			if (!availableRooms.contains(roomName)) {
-				System.out.println("Chat room '" + roomName + "' does not exist!");
-				return false;
-			}
-			if (chatRoom != null) {
-				return true;
-			} else {
-				System.out.println("Error : Chat room not reachable on the server !");
-				return false;
-			}
+			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName);
+			CommandsFromServer stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this, 0);
+			chatServer.register(stub);
+			return true;
 		} catch (RemoteException | NotBoundException e) {
-			System.out.println("Error while connecting to : " + roomName);
+			System.out.println("Can not join room :  " + roomName);
 			e.printStackTrace();
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -197,12 +187,14 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * @param roomName the name of the chat room
 	 * @param message the message to display
 	 */
-	public void receiveMsg(String roomName, String message) {
-
-		/*
-		 * TODO implement the method to allow server to publish message for client.
-		 */
-		window.publish(roomName, message);
+	public void receiveMsg(String roomName, String message) throws NullPointerException {
+		try {
+			System.out.println("Message received: " + message);
+			window.publish(roomName, message);
+		} catch (NullPointerException e) {
+			System.out.println("Error in receiveMsg(): " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	// This class does not contain a main method. You should launch the whole program by launching ChatClientWindow's main method.

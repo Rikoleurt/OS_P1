@@ -48,7 +48,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 		 */
 		try {
 			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
-			registry = LocateRegistry.getRegistry();
+			registry = LocateRegistry.getRegistry("127.0.0.1");
 			registry.rebind("ChatServerManager", stub);
 		} catch (RemoteException e) {
 			System.out.println("Can not export the object");

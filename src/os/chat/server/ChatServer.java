@@ -33,13 +33,9 @@ public class ChatServer implements ChatServerInterface {
 	public ChatServer(String roomName){
 		this.roomName = roomName;
 		registeredClients = new Vector<CommandsFromServer>();
-		
-		/*
-		 * TODO register the ChatServer to the RMI registry
-		 */
 		try {
 			ChatServerInterface stub = (ChatServerInterface) UnicastRemoteObject.exportObject(this,0);
-			registry = LocateRegistry.getRegistry();
+			registry = LocateRegistry.getRegistry("127.0.0.1");
 			registry.rebind("room " + roomName, stub);
 		} catch (RemoteException e) {
 			System.out.println("Can not export the object");
@@ -55,20 +51,12 @@ public class ChatServer implements ChatServerInterface {
 	 * @param publisher the client from which the message originates
 	 */
 	public void publish(String message, String publisher) throws RemoteException {
-		System.out.println("[" + roomName + "] " + publisher + " : " + message);
-
-		Vector<CommandsFromServer> toRemove = new Vector<>();
+		System.out.println("[" + roomName + "] " + publisher + ": " + message);
 
 		for (CommandsFromServer client : registeredClients) {
-			try {
-				client.receiveMsg(message, publisher);
-			} catch (Exception e) {
-				System.out.println("Client déconnecté détecté: " + client);
-				toRemove.add(client);
-			}
-		}
 
-		registeredClients.removeAll(toRemove);
+			client.receiveMsg(roomName, "[" + publisher + "]: " + message);
+		}
 	}
 
 	/**
@@ -77,16 +65,11 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void register(CommandsFromServer client) throws RemoteException {
-
-		/*
-		 * TODO register the client
-		 */
-
-		// DONE
 		try {
 			if (!registeredClients.contains(client)) {
 				registeredClients.add(client);
-				System.out.println("Client registered: " + client);
+				System.out.println("Client registered : " + client);
+				System.out.println("Number of registered clients : " + registeredClients.size());
 			}
 		} catch (Exception e) {
 			System.out.println("Error registering client: " + e.getMessage());
@@ -100,11 +83,6 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void unregister(CommandsFromServer client) throws RemoteException {
-
-		/*
-		 * TODO unregister the client
-		 */
-		// DONE
 		try {
 			if (registeredClients.contains(client)) {
 				registeredClients.remove(client);

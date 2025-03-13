@@ -291,7 +291,7 @@ public class ChatClientWindow implements CommandsToWindow {
 				btnCreateRoom.doClick();
 			}
 		});
-				
+
 		System.out.println("... success");
 	}
 
