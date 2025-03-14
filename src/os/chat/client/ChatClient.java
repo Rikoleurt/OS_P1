@@ -3,6 +3,7 @@ package os.chat.client;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -46,6 +47,7 @@ public class ChatClient implements CommandsFromWindow, CommandsFromServer {
 
   ChatServerManagerInterface csm;
   Registry registry;
+  private CommandsFromServer stub;
 
 	public ChatClient(CommandsToWindow window, String userName) {
 		this.window = window;
@@ -124,7 +126,9 @@ public class ChatClient implements CommandsFromWindow, CommandsFromServer {
 	public boolean joinChatRoom(String roomName) {
 		try {
 			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName);
-			CommandsFromServer stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this, 0);
+			if (stub == null) {
+				stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this, 0);
+			}
 			chatServer.register(stub);
 			return true;
 		} catch (RemoteException | NotBoundException e) {
@@ -143,14 +147,18 @@ public class ChatClient implements CommandsFromWindow, CommandsFromServer {
 	 * <code>false</code> otherwise
 	 */
 	public boolean leaveChatRoom(String roomName) {
-
-		System.err.println("TODO: leaveChatRoom is not implemented.");
-
-		/*
-		 * TODO implement the method to leave a chat room and stop receiving notifications of new messages.
-		 */
-
-		return false;
+		try {
+			ChatServerInterface chatServer = (ChatServerInterface) registry.lookup("room " + roomName);
+			if (stub == null) {
+				stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this, 0);
+			}
+			chatServer.unregister(stub);
+			return true;
+		} catch (RemoteException | NotBoundException e) {
+			System.out.println("Can not leave room : " + roomName + ", cause : " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
 	}
 
     /**
@@ -160,14 +168,17 @@ public class ChatClient implements CommandsFromWindow, CommandsFromServer {
      * <code>false</code> otherwise.
      */
 	public boolean createNewRoom(String roomName) {
-
-		System.err.println("TODO: createNewRoom is not implemented.");
-
 		/*
 		 * TODO implement the method to ask the server to create a new room (second part of the assignment only).
 		 */
-
-		return false;
+		try {
+			csm.createRoom(roomName);
+			System.out.println("Room : " + roomName + " created");
+			return true;
+		} catch (RemoteException e) {
+			System.out.println("Can not create new room" + roomName + " : " + e.getMessage());
+            throw new RuntimeException(e);
+		}
 	}
 
 	/*

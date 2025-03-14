@@ -1,5 +1,6 @@
 package os.chat.server;
 
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -95,16 +96,21 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	 * @return <code>true</code> if the chat room was successfully created,
 	 * <code>false</code> otherwise.
 	 */
-	public boolean createRoom(String roomName) {
-		
-		System.err.println("server manager method createRoom not implemented.");
-		
-		/*
-		 * TODO add the code to create a new room
-		 */
-		
-		return false;
-	}
+		public boolean createRoom(String roomName) {
+			try {
+				chatRooms = new Vector<>();
+				ChatServer chatRoom = new ChatServer(roomName);
+				chatRooms.add(chatRoom);
+				chatRoomsList.add(roomName);
+				System.out.println("Room " + roomName + " created");
+				return true;
+			} catch (Exception e) {
+				System.out.println("Can not create room '"+roomName+"'");
+				e.printStackTrace();
+			}
+			return false;
+		}
+
 
 	public static void main(String[] args) {
 		 try {
@@ -116,5 +122,4 @@ public class ChatServerManager implements ChatServerManagerInterface {
 		 System.out.println("Registry was created");
 		 getInstance();
 		 }
-	
 }
