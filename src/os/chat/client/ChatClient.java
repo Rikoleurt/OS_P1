@@ -48,13 +48,16 @@ public class ChatClient implements CommandsFromWindow, CommandsFromServer {
   ChatServerManagerInterface csm;
   Registry registry;
   private CommandsFromServer stub;
+  String IP = "172.20.10.3";
+
 
 	public ChatClient(CommandsToWindow window, String userName) {
 		this.window = window;
 		this.userName = userName;
 
 		try {
-			registry = LocateRegistry.getRegistry("127.0.0.1");
+			System.setProperty("java.security.policy", "client.policy");
+			registry = LocateRegistry.getRegistry(IP);
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
 		} catch (RemoteException e) {
 			System.out.println("Can not locate registry");

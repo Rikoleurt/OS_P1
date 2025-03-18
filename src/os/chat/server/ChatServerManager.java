@@ -29,6 +29,8 @@ public class ChatServerManager implements ChatServerManagerInterface {
 
     private static ChatServerManager instance = null;
 	private Registry registry;
+	String IP = "172.20.10.3";
+
 
 	/**
 	 * Constructor of the <code>ChatServerManager</code>.
@@ -41,15 +43,9 @@ public class ChatServerManager implements ChatServerManagerInterface {
 		chatRooms = new Vector<>();
 		chatRoomsList = new Vector<>();
 
-		// initial: we create a single chat room and the corresponding ChatServer
-
-		/*
-		 * TODO register the server manager object as a "ChatServerManager" on the RMI registry
-		 * so it can be called by clients.
-		 */
 		try {
 			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
-			registry = LocateRegistry.getRegistry("127.0.0.1");
+			registry = LocateRegistry.getRegistry(IP);
 			registry.rebind("ChatServerManager", stub);
 		} catch (RemoteException e) {
 			System.out.println("Can not export the object");

@@ -24,6 +24,7 @@ public class ChatServer implements ChatServerInterface {
 	private String roomName;
 	private Vector<CommandsFromServer> registeredClients;
 	private Registry registry;
+	String IP = "172.20.10.3";
 	
   /**
    * Constructs and initializes the chat room before registering it to the RMI
@@ -34,8 +35,9 @@ public class ChatServer implements ChatServerInterface {
 		this.roomName = roomName;
 		registeredClients = new Vector<CommandsFromServer>();
 		try {
+			System.setProperty("java.security.policy", "server.policy");
 			ChatServerInterface stub = (ChatServerInterface) UnicastRemoteObject.exportObject(this,0);
-			registry = LocateRegistry.getRegistry("127.0.0.1");
+			registry = LocateRegistry.getRegistry(IP);
 			registry.rebind("room " + roomName, stub);
 			System.out.println("Room " + roomName + " rebounded");
 		} catch (RemoteException e) {

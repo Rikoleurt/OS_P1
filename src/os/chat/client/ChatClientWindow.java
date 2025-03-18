@@ -79,7 +79,7 @@ public class ChatClientWindow implements CommandsToWindow {
 		// create the client object first
 		System.out.println("Initializing the ChatClient object ...");
 		
-		// display a dialog asking for the user name
+		// display a dialog asking for the username
 		String userName = (String)JOptionPane.showInputDialog(
                 null,
                 "Enter your name:\n",
